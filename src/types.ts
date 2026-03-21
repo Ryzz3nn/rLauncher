@@ -58,6 +58,7 @@ export interface Account {
   name: string;
   avatar: string; // URL or data URI
   color: string;
+  steamId?: string; // linked Steam ID for playtime sync
 }
 
 export interface Collection {
@@ -143,6 +144,8 @@ declare global {
       // Steam
       fetchSteamPlaytime: () => Promise<Record<string, number>>;
       detectSteamId: () => Promise<string>;
+      getSteamAccounts: () => Promise<{ steamId: string; accountName: string; personaName: string; mostRecent: boolean }[]>;
+      fetchSteamProfiles: (steamIds: string[]) => Promise<{ steamId: string; personaName: string; avatarUrl: string; profileUrl: string }[]>;
 
       // Settings
       setStartWithWindows: (enabled: boolean) => Promise<void>;

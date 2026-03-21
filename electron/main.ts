@@ -20,7 +20,7 @@ function log(msg: string): void {
   } catch { /* ignore */ }
   console.log(msg);
 }
-import { scanSteamLibrary, fetchSteamPlaytime, detectSteamId } from './services/steam';
+import { scanSteamLibrary, fetchSteamPlaytime, detectSteamId, getLocalSteamAccounts, fetchSteamProfiles } from './services/steam';
 import { scanEpicLibrary } from './services/epic';
 import { scanGogLibrary } from './services/gog';
 import { scanEaLibrary } from './services/ea';
@@ -451,6 +451,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle('detect-steam-id', () => {
     return detectSteamId();
+  });
+
+  ipcMain.handle('get-steam-accounts', () => {
+    return getLocalSteamAccounts();
+  });
+
+  ipcMain.handle('fetch-steam-profiles', async (_event, steamIds: string[]) => {
+    return await fetchSteamProfiles(store.settings.steamApiKey || '', steamIds);
   });
 
   ipcMain.handle('set-start-with-windows', (_event, enabled: boolean) => {

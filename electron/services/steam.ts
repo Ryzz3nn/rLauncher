@@ -250,3 +250,81 @@ export function fetchSteamPlaytime(apiKey: string, steamId: string): Promise<Rec
     });
   });
 }
+
+export interface SteamAccount {
+  steamId: string;
+  accountName: string;
+  personaName: string;
+  mostRecent: boolean;
+}
+
+/** Read all Steam accounts from loginusers.vdf */
+export function getLocalSteamAccounts(): SteamAccount[] {
+  const steamPath = getSteamPath();
+  if (!steamPath) return [];
+
+  try {
+    const loginUsersPath = path.join(steamPath, 'config', 'loginusers.vdf');
+    const content = fs.readFileSync(loginUsersPath, 'utf-8');
+    const parsed = parseVdf(content);
+    const users = parsed.users || parsed.Users;
+    if (!users) return [];
+
+    const accounts: SteamAccount[] = [];
+    for (const steamId of Object.keys(users)) {
+      const user = users[steamId];
+      accounts.push({
+        steamId,
+        accountName: user.AccountName || user.accountname || '',
+        personaName: user.PersonaName || user.personaname || user.AccountName || '',
+        mostRecent: user.MostRecent === '1' || user.mostrecent === '1',
+      });
+    }
+    return accounts;
+  } catch {
+    return [];
+  }
+}
+
+export interface SteamProfile {
+  steamId: string;
+  personaName: string;
+  avatarUrl: string;
+  profileUrl: string;
+}
+
+/** Fetch Steam profile summaries (name, avatar) for one or more Steam IDs */
+export function fetchSteamProfiles(apiKey: string, steamIds: string[]): Promise<SteamProfile[]> {
+  return new Promise((resolve) => {
+    if (!apiKey || steamIds.length === 0) {
+      resolve([]);
+      return;
+    }
+
+    const ids = steamIds.join(',');
+    const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${encodeURIComponent(apiKey)}&steamids=${ids}&format=json`;
+
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const players = json?.response?.players;
+          if (!Array.isArray(players)) { resolve([]); return; }
+
+          resolve(players.map((p: any) => ({
+            steamId: p.steamid,
+            personaName: p.personaname || '',
+            avatarUrl: p.avatarfull || p.avatarmedium || p.avatar || '',
+            profileUrl: p.profileurl || '',
+          })));
+        } catch {
+          resolve([]);
+        }
+      });
+    }).on('error', () => {
+      resolve([]);
+    });
+  });
+}

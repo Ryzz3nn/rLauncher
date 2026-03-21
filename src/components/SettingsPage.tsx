@@ -190,6 +190,66 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
           </div>
         ))}
 
+        <div className="setting-row">
+          <div className="setting-info">
+            <span className="setting-name">Import from Steam</span>
+            <span className="setting-desc">Auto-detect Steam accounts on this PC and fetch avatars</span>
+          </div>
+          <button className="btn-secondary" onClick={async () => {
+            onToast({ message: 'Detecting Steam accounts...', type: 'info' });
+            const localAccounts = await window.api.getSteamAccounts();
+            if (localAccounts.length === 0) {
+              onToast({ message: 'No Steam accounts found on this machine.', type: 'error' });
+              return;
+            }
+
+            // Fetch profiles with avatars if we have an API key
+            let profiles: { steamId: string; personaName: string; avatarUrl: string }[] = [];
+            if (settings.steamApiKey) {
+              profiles = await window.api.fetchSteamProfiles(localAccounts.map(a => a.steamId));
+            }
+
+            const profileMap = new Map(profiles.map(p => [p.steamId, p]));
+            const colors = COLLECTION_COLORS;
+            let added = 0;
+
+            const updated = [...accounts];
+            for (let i = 0; i < localAccounts.length; i++) {
+              const local = localAccounts[i];
+              // Skip if already imported
+              if (updated.some(a => a.steamId === local.steamId)) continue;
+
+              const profile = profileMap.get(local.steamId);
+              updated.push({
+                id: `steam-${local.steamId}`,
+                name: profile?.personaName || local.personaName || local.accountName,
+                avatar: profile?.avatarUrl || '',
+                color: colors[i % colors.length],
+                steamId: local.steamId,
+              });
+              added++;
+            }
+
+            if (added === 0) {
+              onToast({ message: 'All Steam accounts already imported.', type: 'info' });
+            } else {
+              // Remove the default account if it has no playtime data and we're importing real ones
+              const final = updated.filter(a => a.id !== 'default' || accounts.length === 1);
+              onSaveAccounts(final.length > 0 ? final : updated);
+              // Set the most recent Steam account as active
+              const mostRecent = localAccounts.find(a => a.mostRecent);
+              if (mostRecent) {
+                const acctId = `steam-${mostRecent.steamId}`;
+                if (updated.some(a => a.id === acctId)) {
+                  update('activeAccountId', acctId);
+                  if (!settings.steamId) update('steamId', mostRecent.steamId);
+                }
+              }
+              onToast({ message: `Imported ${added} Steam account(s).`, type: 'success' });
+            }
+          }}>Import</button>
+        </div>
+
         <div className="collection-add-row">
           <div className="color-picker-small">
             {COLLECTION_COLORS.map(c => (
