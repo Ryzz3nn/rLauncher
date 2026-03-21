@@ -384,15 +384,44 @@ body {
 
 /* ─── Account Avatars ─── */
 .account-avatar-sm {
-  width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+.account-avatar-tiny {
+  width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
 }
 .account-avatar-placeholder {
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #fff;
+  font-size: 11px; font-weight: 700; color: #fff;
 }
 .active-badge {
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-  padding: 2px 8px; border-radius: 10px; background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 1px 6px; border-radius: 8px; background: var(--accent); color: #fff;
+}
+
+/* Compact account list in settings */
+.accounts-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.account-row {
+  display: flex; align-items: center; gap: 8px; padding: 5px 10px;
+  border-radius: var(--radius-sm); transition: background 0.12s;
+}
+.account-row:hover { background: var(--bg-elevated); }
+.account-row-name { font-size: 13px; font-weight: 500; white-space: nowrap; }
+.account-steamid-input {
+  width: 110px; padding: 2px 6px; font-size: 11px; font-family: var(--font);
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text-muted); outline: none; transition: border-color 0.15s;
+}
+.account-steamid-input:focus { border-color: var(--accent); color: var(--text); }
+.account-action-btn {
+  padding: 2px 8px; font-size: 11px; font-family: var(--font); border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim); border-radius: 3px; cursor: pointer;
+  transition: all 0.12s; white-space: nowrap;
+}
+.account-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.account-action-btn.danger { color: var(--text-muted); }
+.account-action-btn.danger:hover { border-color: #ef4444; color: #ef4444; }
+.account-actions-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0;
 }
 .detail-account-playtime {
   display: flex; flex-direction: column; gap: 6px; margin-top: 4px;

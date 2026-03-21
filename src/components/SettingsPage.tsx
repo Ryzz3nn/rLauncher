@@ -161,71 +161,44 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
       <div className="settings-group">
         <h3 className="settings-group-title">Accounts</h3>
 
-        {accounts.map(acct => (
-          <div key={acct.id} className="setting-row">
-            <div className="setting-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="accounts-list">
+          {accounts.map(acct => (
+            <div key={acct.id} className="account-row">
               {acct.avatar ? (
-                <img src={acct.avatar} alt={acct.name} className="account-avatar-sm" />
+                <img src={acct.avatar} alt={acct.name} className="account-avatar-tiny" />
               ) : (
-                <span className="account-avatar-sm account-avatar-placeholder" style={{ background: acct.color }}>
+                <span className="account-avatar-tiny account-avatar-placeholder" style={{ background: acct.color }}>
                   {acct.name.charAt(0).toUpperCase()}
                 </span>
               )}
-              <span className="setting-name">{acct.name}</span>
+              <span className="account-row-name">{acct.name}</span>
               {settings.activeAccountId === acct.id && <span className="active-badge">Active</span>}
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
+              <input className="account-steamid-input" value={acct.steamId || ''} placeholder="Steam ID"
+                onChange={e => { const updated = accounts.map(a => a.id === acct.id ? { ...a, steamId: e.target.value } : a); onSaveAccounts(updated); }}
+                onClick={e => e.stopPropagation()} />
+              <span style={{ flex: 1 }} />
               {settings.activeAccountId !== acct.id && (
-                <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12 }}
-                  onClick={() => update('activeAccountId', acct.id)}>
-                  Switch
-                </button>
+                <button className="account-action-btn" onClick={() => update('activeAccountId', acct.id)}>Switch</button>
               )}
               {acct.id !== 'default' && (
-                <button className="setting-remove-btn"
-                  onClick={() => onSaveAccounts(accounts.filter(a => a.id !== acct.id))}>
-                  Remove
-                </button>
+                <button className="account-action-btn danger" onClick={() => onSaveAccounts(accounts.filter(a => a.id !== acct.id))}>Remove</button>
               )}
             </div>
-          </div>
-        ))}
-
-        <div className="setting-row">
-          <div className="setting-info">
-            <span className="setting-name">Import from Steam</span>
-            <span className="setting-desc">Auto-detect Steam accounts on this PC and fetch avatars</span>
-          </div>
-          <button className="btn-secondary" onClick={onImportSteamAccounts}>Import</button>
+          ))}
         </div>
 
-        <div className="collection-add-row">
-          <div className="color-picker-small">
-            {COLLECTION_COLORS.map(c => (
-              <button key={c}
-                className={`color-swatch-sm ${newAcctColor === c ? 'active' : ''}`}
-                style={{ background: c }}
-                onClick={() => setNewAcctColor(c)} />
-            ))}
-          </div>
-          <input className="setting-input" value={newAcctName}
-            onChange={e => setNewAcctName(e.target.value)}
-            placeholder="Account name" style={{ flex: 1 }}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && newAcctName.trim()) {
-                onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]);
-                setNewAcctName(''); setNewAcctAvatar('');
-              }
-            }} />
-          <input className="setting-input" value={newAcctAvatar}
-            onChange={e => setNewAcctAvatar(e.target.value)}
-            placeholder="Avatar URL (optional)" style={{ flex: 1 }} />
-          <button className="btn-primary" style={{ padding: '6px 14px', fontSize: 12 }}
-            onClick={() => {
-              if (!newAcctName.trim()) return;
-              onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]);
-              setNewAcctName(''); setNewAcctAvatar('');
-            }}>Add</button>
+        <div className="account-actions-row">
+          <button className="btn-secondary" onClick={onImportSteamAccounts} style={{ fontSize: 12, padding: '5px 12px' }}>
+            Import from Steam
+          </button>
+          <span style={{ flex: 1 }} />
+          <input className="setting-input" value={newAcctName} onChange={e => setNewAcctName(e.target.value)}
+            placeholder="Name" style={{ width: 100 }}
+            onKeyDown={e => { if (e.key === 'Enter' && newAcctName.trim()) { onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]); setNewAcctName(''); setNewAcctAvatar(''); } }} />
+          <input className="setting-input" value={newAcctAvatar} onChange={e => setNewAcctAvatar(e.target.value)}
+            placeholder="Avatar URL" style={{ width: 120 }} />
+          <button className="btn-primary" style={{ padding: '5px 12px', fontSize: 12 }}
+            onClick={() => { if (!newAcctName.trim()) return; onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]); setNewAcctName(''); setNewAcctAvatar(''); }}>Add</button>
         </div>
       </div>
 
