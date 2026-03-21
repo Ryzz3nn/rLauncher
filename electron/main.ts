@@ -445,8 +445,9 @@ app.whenReady().then(() => {
 
   // ── Settings ──
 
-  ipcMain.handle('fetch-steam-playtime', async () => {
-    return await fetchSteamPlaytime(store.settings.steamApiKey || '', store.settings.steamId || '');
+  ipcMain.handle('fetch-steam-playtime', async (_event, steamId?: string) => {
+    const id = steamId || store.settings.steamId || '';
+    return await fetchSteamPlaytime(store.settings.steamApiKey || '', id);
   });
 
   ipcMain.handle('detect-steam-id', () => {

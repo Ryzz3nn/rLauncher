@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   getRunningGames: () => ipcRenderer.invoke('get-running-games'),
 
   // Steam
-  fetchSteamPlaytime: () => ipcRenderer.invoke('fetch-steam-playtime'),
+  fetchSteamPlaytime: (steamId?: string) => ipcRenderer.invoke('fetch-steam-playtime', steamId),
   detectSteamId: () => ipcRenderer.invoke('detect-steam-id'),
   getSteamAccounts: () => ipcRenderer.invoke('get-steam-accounts'),
   fetchSteamProfiles: (steamIds: string[]) => ipcRenderer.invoke('fetch-steam-profiles', steamIds),

@@ -121,19 +121,25 @@ export default function App() {
     return unsub;
   }, [games, addToast]);
 
-  // Listen for Steam playtime import
+  // Listen for Steam playtime import (per-account)
   useEffect(() => {
     function handleSteamPlaytime(e: Event) {
-      const playtime = (e as CustomEvent).detail as Record<string, number>;
+      const { playtime, accountId } = (e as CustomEvent).detail as { playtime: Record<string, number>; accountId: string };
       setStoreData(prev => {
         const updatedGameData = { ...prev.gameData };
         for (const [appId, timeMs] of Object.entries(playtime)) {
           const gameId = `steam-${appId}`;
           const existing = updatedGameData[gameId] || { ...DEFAULT_GAME_DATA };
-          // Use Steam's playtime if it's higher than our local tracking
-          if (timeMs > (existing.totalPlayTime || 0)) {
-            updatedGameData[gameId] = { ...existing, totalPlayTime: timeMs };
+          const acctPlayTime = { ...(existing.accountPlayTime || {}) };
+          const acctData = acctPlayTime[accountId] || { totalPlayTime: 0, lastPlayed: null, sessions: [] };
+
+          // Use Steam's playtime if it's higher than local tracking for this account
+          if (timeMs > acctData.totalPlayTime) {
+            acctPlayTime[accountId] = { ...acctData, totalPlayTime: timeMs };
           }
+
+          const newTotal = Object.values(acctPlayTime).reduce((s, a) => s + a.totalPlayTime, 0);
+          updatedGameData[gameId] = { ...existing, accountPlayTime: acctPlayTime, totalPlayTime: newTotal };
         }
         const updated = { ...prev, gameData: updatedGameData };
         window.api.saveStoreData(updated);

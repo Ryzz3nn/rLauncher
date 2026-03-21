@@ -178,7 +178,7 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
                 onClick={e => e.stopPropagation()} />
               <span style={{ flex: 1 }} />
               {settings.activeAccountId !== acct.id && (
-                <button className="account-action-btn" onClick={() => update('activeAccountId', acct.id)}>Switch</button>
+                <button className="account-action-btn" onClick={() => update('activeAccountId', acct.id)}>Set Active</button>
               )}
               {acct.id !== 'default' && (
                 <button className="account-action-btn danger" onClick={() => onSaveAccounts(accounts.filter(a => a.id !== acct.id))}>Remove</button>
@@ -281,20 +281,41 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
         <div className="setting-row">
           <div className="setting-info">
             <span className="setting-name">Import Steam Playtime</span>
-            <span className="setting-desc">Sync play time from your Steam account</span>
+            <span className="setting-desc">Sync play time for all accounts with a Steam ID</span>
           </div>
           <button className="btn-secondary" onClick={async () => {
             if (!settings.steamApiKey) { onToast({ message: 'Set your Steam API key first.', type: 'error' }); return; }
-            const steamId = settings.steamId || await window.api.detectSteamId();
-            if (!steamId) { onToast({ message: 'Could not determine Steam ID.', type: 'error' }); return; }
-            onToast({ message: 'Fetching Steam playtime...', type: 'info' });
-            const playtime = await window.api.fetchSteamPlaytime();
-            const count = Object.keys(playtime).length;
-            if (count === 0) { onToast({ message: 'No playtime data found. Check your API key.', type: 'error' }); return; }
-            // Dispatch event to App to merge playtime
-            window.dispatchEvent(new CustomEvent('steam-playtime', { detail: playtime }));
-            onToast({ message: `Imported playtime for ${count} games.`, type: 'success' });
-          }}>Sync Now</button>
+
+            // Collect all accounts that have a steamId
+            const acctsWith = accounts.filter(a => a.steamId);
+            // Also include the global steamId as fallback
+            if (acctsWith.length === 0 && settings.steamId) {
+              onToast({ message: 'Fetching Steam playtime...', type: 'info' });
+              const playtime = await window.api.fetchSteamPlaytime(settings.steamId);
+              const count = Object.keys(playtime).length;
+              if (count > 0) {
+                window.dispatchEvent(new CustomEvent('steam-playtime', { detail: { playtime, accountId: settings.activeAccountId } }));
+                onToast({ message: `Imported playtime for ${count} games.`, type: 'success' });
+              } else {
+                onToast({ message: 'No playtime data found.', type: 'error' });
+              }
+              return;
+            }
+
+            if (acctsWith.length === 0) { onToast({ message: 'No accounts have a Steam ID set.', type: 'error' }); return; }
+
+            onToast({ message: `Syncing playtime for ${acctsWith.length} account(s)...`, type: 'info' });
+            let totalGames = 0;
+            for (const acct of acctsWith) {
+              const playtime = await window.api.fetchSteamPlaytime(acct.steamId!);
+              const count = Object.keys(playtime).length;
+              if (count > 0) {
+                window.dispatchEvent(new CustomEvent('steam-playtime', { detail: { playtime, accountId: acct.id } }));
+                totalGames += count;
+              }
+            }
+            onToast({ message: totalGames > 0 ? `Synced playtime across ${acctsWith.length} account(s).` : 'No playtime data found.', type: totalGames > 0 ? 'success' : 'error' });
+          }}>Sync All</button>
         </div>
       </div>
 

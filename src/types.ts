@@ -142,7 +142,7 @@ declare global {
       importData: () => Promise<{ success: boolean; data?: StoreData }>;
 
       // Steam
-      fetchSteamPlaytime: () => Promise<Record<string, number>>;
+      fetchSteamPlaytime: (steamId?: string) => Promise<Record<string, number>>;
       detectSteamId: () => Promise<string>;
       getSteamAccounts: () => Promise<{ steamId: string; accountName: string; personaName: string; mostRecent: boolean }[]>;
       fetchSteamProfiles: (steamIds: string[]) => Promise<{ steamId: string; personaName: string; avatarUrl: string; profileUrl: string }[]>;
