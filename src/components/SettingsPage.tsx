@@ -1,8 +1,10 @@
-import type { AppSettings, Collection, Toast } from '../types';
+import type { AppSettings, Collection, Toast, Account } from '../types';
 import { useState } from 'react';
 
 interface SettingsPageProps {
   settings: AppSettings;
+  accounts: Account[];
+  onSaveAccounts: (accounts: Account[]) => void;
   collections: Collection[];
   onSaveSettings: (settings: AppSettings) => void;
   onSaveCollections: (collections: Collection[]) => void;
@@ -22,9 +24,12 @@ const ACCENT_COLORS = [
 
 const COLLECTION_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#7c3aed', '#ec4899'];
 
-export function SettingsPage({ settings, collections, onSaveSettings, onSaveCollections, onToast }: SettingsPageProps) {
+export function SettingsPage({ settings, accounts, collections, onSaveSettings, onSaveAccounts, onSaveCollections, onToast }: SettingsPageProps) {
   const [newColName, setNewColName] = useState('');
   const [newColColor, setNewColColor] = useState(COLLECTION_COLORS[0]);
+  const [newAcctName, setNewAcctName] = useState('');
+  const [newAcctAvatar, setNewAcctAvatar] = useState('');
+  const [newAcctColor, setNewAcctColor] = useState(COLLECTION_COLORS[4]);
 
   function update(key: keyof AppSettings, value: any) {
     const updated = { ...settings, [key]: value };
@@ -148,6 +153,70 @@ export function SettingsPage({ settings, collections, onSaveSettings, onSaveColl
             onChange={e => update('globalHotkey', e.target.value)}
             placeholder="CommandOrControl+Shift+G"
           />
+        </div>
+      </div>
+
+      {/* Accounts */}
+      <div className="settings-group">
+        <h3 className="settings-group-title">Accounts</h3>
+
+        {accounts.map(acct => (
+          <div key={acct.id} className="setting-row">
+            <div className="setting-info" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {acct.avatar ? (
+                <img src={acct.avatar} alt={acct.name} className="account-avatar-sm" />
+              ) : (
+                <span className="account-avatar-sm account-avatar-placeholder" style={{ background: acct.color }}>
+                  {acct.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="setting-name">{acct.name}</span>
+              {settings.activeAccountId === acct.id && <span className="active-badge">Active</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {settings.activeAccountId !== acct.id && (
+                <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12 }}
+                  onClick={() => update('activeAccountId', acct.id)}>
+                  Switch
+                </button>
+              )}
+              {acct.id !== 'default' && (
+                <button className="setting-remove-btn"
+                  onClick={() => onSaveAccounts(accounts.filter(a => a.id !== acct.id))}>
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div className="collection-add-row">
+          <div className="color-picker-small">
+            {COLLECTION_COLORS.map(c => (
+              <button key={c}
+                className={`color-swatch-sm ${newAcctColor === c ? 'active' : ''}`}
+                style={{ background: c }}
+                onClick={() => setNewAcctColor(c)} />
+            ))}
+          </div>
+          <input className="setting-input" value={newAcctName}
+            onChange={e => setNewAcctName(e.target.value)}
+            placeholder="Account name" style={{ flex: 1 }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newAcctName.trim()) {
+                onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]);
+                setNewAcctName(''); setNewAcctAvatar('');
+              }
+            }} />
+          <input className="setting-input" value={newAcctAvatar}
+            onChange={e => setNewAcctAvatar(e.target.value)}
+            placeholder="Avatar URL (optional)" style={{ flex: 1 }} />
+          <button className="btn-primary" style={{ padding: '6px 14px', fontSize: 12 }}
+            onClick={() => {
+              if (!newAcctName.trim()) return;
+              onSaveAccounts([...accounts, { id: `acct-${Date.now()}`, name: newAcctName.trim(), avatar: newAcctAvatar.trim(), color: newAcctColor }]);
+              setNewAcctName(''); setNewAcctAvatar('');
+            }}>Add</button>
         </div>
       </div>
 

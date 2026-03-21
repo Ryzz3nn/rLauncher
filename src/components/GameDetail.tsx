@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import type { Game, GameData, Collection, Toast } from '../types';
+import type { Game, GameData, Collection, Toast, Account } from '../types';
+import { getTotalPlayTime, getLastPlayed } from '../types';
 
 interface GameDetailProps {
   game: Game;
   gameData: GameData;
   collections: Collection[];
+  accounts: Account[];
   isFavorite: boolean;
   onClose: () => void;
   onSaveGameData: (gameId: string, data: GameData) => void;
@@ -35,7 +37,7 @@ function formatSize(bytes?: number): string {
 }
 
 export function GameDetail({
-  game, gameData, collections, isFavorite,
+  game, gameData, collections, accounts, isFavorite,
   onClose, onSaveGameData, onToggleFavorite, onLaunch, onToast,
 }: GameDetailProps) {
   const [data, setData] = useState<GameData>({ ...gameData });
@@ -106,22 +108,42 @@ export function GameDetail({
 
             <div className="detail-stats">
               <div className="stat">
-                <span className="stat-value">{formatPlayTime(data.totalPlayTime)}</span>
-                <span className="stat-label">Play Time</span>
+                <span className="stat-value">{formatPlayTime(getTotalPlayTime(data))}</span>
+                <span className="stat-label">Total Play Time</span>
               </div>
               <div className="stat">
-                <span className="stat-value">{formatDate(data.lastPlayed)}</span>
+                <span className="stat-value">{formatDate(getLastPlayed(data))}</span>
                 <span className="stat-label">Last Played</span>
-              </div>
-              <div className="stat">
-                <span className="stat-value">{data.sessions.length}</span>
-                <span className="stat-label">Sessions</span>
               </div>
               <div className="stat">
                 <span className="stat-value">{formatSize(game.sizeOnDisk)}</span>
                 <span className="stat-label">Size</span>
               </div>
             </div>
+
+            {/* Per-account playtime breakdown */}
+            {data.accountPlayTime && Object.keys(data.accountPlayTime).length > 0 && accounts.length > 1 && (
+              <div className="detail-account-playtime">
+                {accounts.map(acct => {
+                  const ap = data.accountPlayTime[acct.id];
+                  if (!ap || ap.totalPlayTime === 0) return null;
+                  return (
+                    <div key={acct.id} className="account-playtime-row">
+                      {acct.avatar ? (
+                        <img src={acct.avatar} alt={acct.name} className="account-avatar-sm" />
+                      ) : (
+                        <span className="account-avatar-sm account-avatar-placeholder" style={{ background: acct.color }}>
+                          {acct.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span className="account-playtime-name">{acct.name}</span>
+                      <span className="account-playtime-time">{formatPlayTime(ap.totalPlayTime)}</span>
+                      <span className="account-playtime-sessions">{ap.sessions.length} sessions</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="detail-actions">
               <button className="btn-primary" onClick={() => onLaunch(game)}>

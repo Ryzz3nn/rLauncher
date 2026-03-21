@@ -13,6 +13,7 @@ interface AppSettings {
   cardSize: 'small' | 'medium' | 'large';
   steamApiKey: string;
   steamId: string;
+  activeAccountId: string;
 }
 
 interface StoreData {
@@ -21,6 +22,7 @@ interface StoreData {
   collections: any[];
   favorites: string[];
   customGames: any[];
+  accounts: any[];
 }
 
 const defaults: StoreData = {
@@ -33,11 +35,13 @@ const defaults: StoreData = {
     cardSize: 'medium',
     steamApiKey: '',
     steamId: '',
+    activeAccountId: 'default',
   },
   gameData: {},
   collections: [],
   favorites: [],
   customGames: [],
+  accounts: [{ id: 'default', name: 'Default', avatar: '', color: '#7c3aed' }],
 };
 
 function getStorePath(): string {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Game, GameFilter, Collection, AppPage } from '../types';
+import type { Game, GameFilter, Collection, AppPage, Account } from '../types';
 import bannerImg from '../assets/banner.png';
 
 interface SidebarProps {
@@ -9,6 +9,9 @@ interface SidebarProps {
   onPageChange: (page: AppPage) => void;
   counts: { all: number; steam: number; epic: number; gog: number; ea: number; custom: number; favorites: number; recent: number };
   collections: Collection[];
+  accounts: Account[];
+  activeAccountId: string;
+  onSwitchAccount: (id: string) => void;
   onAddCustomGame: (game: Game) => void;
   onRescan: () => void;
 }
@@ -48,7 +51,7 @@ function IconCollection({ color }: { color: string }) {
   return <svg width="18" height="18" viewBox="0 0 18 18" fill={color} opacity="0.9"><rect x="2" y="3" width="14" height="12" rx="3"/></svg>;
 }
 
-export function Sidebar({ filter, page, onFilterChange, onPageChange, counts, collections, onAddCustomGame, onRescan }: SidebarProps) {
+export function Sidebar({ filter, page, onFilterChange, onPageChange, counts, collections, accounts, activeAccountId, onSwitchAccount, onAddCustomGame, onRescan }: SidebarProps) {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const mainNav = [
@@ -80,6 +83,28 @@ export function Sidebar({ filter, page, onFilterChange, onPageChange, counts, co
       <div className="sidebar-logo">
         <img src={bannerImg} alt="rLauncher" className="logo-banner" />
       </div>
+
+      {accounts.length > 1 && (
+        <div className="account-switcher">
+          {accounts.map(acct => (
+            <button
+              key={acct.id}
+              className={`account-chip ${activeAccountId === acct.id ? 'active' : ''}`}
+              onClick={() => onSwitchAccount(acct.id)}
+              title={acct.name}
+            >
+              {acct.avatar ? (
+                <img src={acct.avatar} alt={acct.name} className="account-chip-avatar" />
+              ) : (
+                <span className="account-chip-letter" style={{ background: acct.color }}>
+                  {acct.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="account-chip-name">{acct.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <nav className="sidebar-nav">
         <div className="nav-section-label">Library</div>

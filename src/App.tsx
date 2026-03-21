@@ -6,9 +6,11 @@ import { ContextMenu } from './components/ContextMenu';
 import { GameDetail } from './components/GameDetail';
 import { SettingsPage } from './components/SettingsPage';
 import { ToastContainer } from './components/Toast';
-import type { Game, GameFilter, GameSection, GameData, StoreData, AppSettings, Collection, SortMode, ViewMode, AppPage, Toast } from './types';
+import type { Game, GameFilter, GameSection, GameData, StoreData, AppSettings, Collection, SortMode, ViewMode, AppPage, Toast, Account, AccountPlayData } from './types';
+import { getTotalPlayTime, getLastPlayed } from './types';
 
 const DEFAULT_GAME_DATA: GameData = {
+  accountPlayTime: {},
   totalPlayTime: 0, lastPlayed: null, sessions: [],
   launchArgs: '', preLaunchCmd: '', postLaunchCmd: '',
   customCoverUrl: null, notes: '', saveLocations: [], collections: [],
@@ -17,8 +19,12 @@ const DEFAULT_GAME_DATA: GameData = {
 const DEFAULT_SETTINGS: AppSettings = {
   startWithWindows: false, minimizeToTray: false, closeToTray: false,
   globalHotkey: 'CommandOrControl+Shift+G', accentColor: '#7c3aed', cardSize: 'medium',
-  steamApiKey: '', steamId: '',
+  steamApiKey: '', steamId: '', activeAccountId: 'default',
 };
+
+const DEFAULT_ACCOUNTS: Account[] = [
+  { id: 'default', name: 'Default', avatar: '', color: '#7c3aed' },
+];
 
 export default function App() {
   const [games, setGames] = useState<Game[]>([]);
@@ -26,6 +32,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [storeData, setStoreData] = useState<StoreData>({
     settings: DEFAULT_SETTINGS, gameData: {}, collections: [], favorites: [], customGames: [],
+    accounts: DEFAULT_ACCOUNTS,
   });
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; game: Game } | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('favorites-first');
@@ -64,24 +71,42 @@ export default function App() {
         const ids = await window.api.getRunningGames();
         setRunningGames(new Set(ids));
       } catch { /* ignore */ }
-    }, 10000);
+    }, 30000); // poll every 30s instead of 10s
     return () => clearInterval(interval);
   }, []);
 
   // Listen for game stopped events
   useEffect(() => {
     const unsub = window.api.onGameStopped((gameId, duration) => {
+      if (duration <= 0) return; // force-kill with no playtime
       setStoreData(prev => {
         const gd = prev.gameData[gameId] || { ...DEFAULT_GAME_DATA };
+        const activeId = prev.settings.activeAccountId || 'default';
+        const session = { start: new Date(Date.now() - duration).toISOString(), end: new Date().toISOString(), duration };
+        const now = new Date().toISOString();
+
+        // Update per-account playtime
+        const acctData = gd.accountPlayTime?.[activeId] || { totalPlayTime: 0, lastPlayed: null, sessions: [] };
+        const updatedAcctPlayTime = {
+          ...gd.accountPlayTime,
+          [activeId]: {
+            totalPlayTime: acctData.totalPlayTime + duration,
+            lastPlayed: now,
+            sessions: [...acctData.sessions, session],
+          },
+        };
+
         const updated: StoreData = {
           ...prev,
           gameData: {
             ...prev.gameData,
             [gameId]: {
               ...gd,
-              totalPlayTime: (gd.totalPlayTime || 0) + duration,
-              lastPlayed: new Date().toISOString(),
-              sessions: [...(gd.sessions || []), { start: new Date(Date.now() - duration).toISOString(), end: new Date().toISOString(), duration }],
+              accountPlayTime: updatedAcctPlayTime,
+              // Keep legacy totals in sync (sum of all accounts)
+              totalPlayTime: Object.values(updatedAcctPlayTime).reduce((s, a) => s + a.totalPlayTime, 0),
+              lastPlayed: now,
+              sessions: [...(gd.sessions || []), session],
             },
           },
         };
@@ -238,13 +263,15 @@ export default function App() {
         return [{ label: '', games: [...filtered].sort((a, b) => (b.sizeOnDisk ?? 0) - (a.sizeOnDisk ?? 0)) }];
       case 'recent':
         return [{ label: '', games: [...filtered].sort((a, b) => {
-          const aTime = storeData.gameData[a.id]?.lastPlayed ? new Date(storeData.gameData[a.id].lastPlayed!).getTime() : 0;
-          const bTime = storeData.gameData[b.id]?.lastPlayed ? new Date(storeData.gameData[b.id].lastPlayed!).getTime() : 0;
+          const aLp = getLastPlayed(storeData.gameData[a.id]);
+          const bLp = getLastPlayed(storeData.gameData[b.id]);
+          const aTime = aLp ? new Date(aLp).getTime() : 0;
+          const bTime = bLp ? new Date(bLp).getTime() : 0;
           return bTime - aTime;
         }) }];
       case 'play-time':
         return [{ label: '', games: [...filtered].sort((a, b) => {
-          return (storeData.gameData[b.id]?.totalPlayTime ?? 0) - (storeData.gameData[a.id]?.totalPlayTime ?? 0);
+          return getTotalPlayTime(storeData.gameData[b.id]) - getTotalPlayTime(storeData.gameData[a.id]);
         }) }];
     }
   }, [games, filter, favorites, sortMode, storeData.gameData, storeData.collections]);
@@ -260,8 +287,8 @@ export default function App() {
     custom: games.filter(g => g.source === 'custom').length,
     favorites: storeData.favorites.length,
     recent: games.filter(g => {
-      const gd = storeData.gameData[g.id];
-      return gd?.lastPlayed && new Date(gd.lastPlayed).getTime() > recentCutoff;
+      const lp = getLastPlayed(storeData.gameData[g.id]);
+      return lp && new Date(lp).getTime() > recentCutoff;
     }).length,
   };
 
@@ -326,6 +353,9 @@ export default function App() {
           onPageChange={setPage}
           counts={counts}
           collections={storeData.collections}
+          accounts={storeData.accounts || DEFAULT_ACCOUNTS}
+          activeAccountId={storeData.settings.activeAccountId || 'default'}
+          onSwitchAccount={id => saveStore({ ...storeData, settings: { ...storeData.settings, activeAccountId: id } })}
           onAddCustomGame={handleAddCustomGame}
           onRescan={() => { addToast({ message: 'Rescanning libraries...', type: 'info' }); scanAllLibraries().then(() => addToast({ message: 'Rescan complete.', type: 'success' })); }}
         />
@@ -333,8 +363,10 @@ export default function App() {
           {page === 'settings' ? (
             <SettingsPage
               settings={storeData.settings}
+              accounts={storeData.accounts || DEFAULT_ACCOUNTS}
               collections={storeData.collections}
               onSaveSettings={s => saveStore({ ...storeData, settings: s })}
+              onSaveAccounts={a => saveStore({ ...storeData, accounts: a })}
               onSaveCollections={c => saveStore({ ...storeData, collections: c })}
               onToast={addToast}
             />
@@ -407,6 +439,7 @@ export default function App() {
           game={detailGame}
           gameData={getGameData(detailGame.id)}
           collections={storeData.collections}
+          accounts={storeData.accounts || DEFAULT_ACCOUNTS}
           isFavorite={favorites.has(detailGame.id)}
           onClose={() => setDetailGame(null)}
           onSaveGameData={saveGameData}

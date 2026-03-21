@@ -30,10 +30,16 @@ export interface PlaySession {
   duration: number;
 }
 
-export interface GameData {
+export interface AccountPlayData {
   totalPlayTime: number;
   lastPlayed: string | null;
   sessions: PlaySession[];
+}
+
+export interface GameData {
+  // Per-account playtime (keyed by account ID)
+  accountPlayTime: Record<string, AccountPlayData>;
+  // Settings (shared across accounts)
   launchArgs: string;
   preLaunchCmd: string;
   postLaunchCmd: string;
@@ -41,6 +47,17 @@ export interface GameData {
   notes: string;
   saveLocations: string[];
   collections: string[];
+  // Legacy fields kept for backward compat / convenience getters
+  totalPlayTime: number;
+  lastPlayed: string | null;
+  sessions: PlaySession[];
+}
+
+export interface Account {
+  id: string;
+  name: string;
+  avatar: string; // URL or data URI
+  color: string;
 }
 
 export interface Collection {
@@ -58,6 +75,7 @@ export interface AppSettings {
   cardSize: 'small' | 'medium' | 'large';
   steamApiKey: string;
   steamId: string;
+  activeAccountId: string;
 }
 
 export interface StoreData {
@@ -66,12 +84,34 @@ export interface StoreData {
   collections: Collection[];
   favorites: string[];
   customGames: Game[];
+  accounts: Account[];
 }
 
 export interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
+}
+
+// Helper: compute total playtime across all accounts for a game
+export function getTotalPlayTime(gd: GameData | undefined): number {
+  if (!gd) return 0;
+  if (gd.accountPlayTime && Object.keys(gd.accountPlayTime).length > 0) {
+    return Object.values(gd.accountPlayTime).reduce((sum, a) => sum + (a.totalPlayTime || 0), 0);
+  }
+  return gd.totalPlayTime || 0;
+}
+
+export function getLastPlayed(gd: GameData | undefined): string | null {
+  if (!gd) return null;
+  if (gd.accountPlayTime && Object.keys(gd.accountPlayTime).length > 0) {
+    let latest: string | null = null;
+    for (const a of Object.values(gd.accountPlayTime)) {
+      if (a.lastPlayed && (!latest || a.lastPlayed > latest)) latest = a.lastPlayed;
+    }
+    return latest;
+  }
+  return gd.lastPlayed || null;
 }
 
 declare global {

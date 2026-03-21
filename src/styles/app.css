@@ -73,6 +73,25 @@ body {
 }
 .sidebar-logo { padding: 16px 16px 20px; display: flex; align-items: center; }
 .logo-banner { width: 100%; height: auto; object-fit: contain; }
+/* Account switcher */
+.account-switcher {
+  padding: 0 12px 12px; display: flex; gap: 4px; flex-wrap: wrap;
+}
+.account-chip {
+  display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+  border-radius: 16px; cursor: pointer; font-family: var(--font); font-size: 12px;
+  transition: all 0.15s;
+}
+.account-chip:hover { background: var(--bg-elevated); color: var(--text); }
+.account-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.account-chip-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
+.account-chip-letter {
+  width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700; color: #fff;
+}
+.account-chip-name { white-space: nowrap; }
+
 .sidebar-nav { flex: 1; padding: 0 12px; overflow-y: auto; }
 .sidebar-nav::-webkit-scrollbar { width: 4px; }
 .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -362,6 +381,29 @@ body {
 .save-location-add { display: flex; gap: 6px; }
 .save-location-add .detail-input { flex: 1; }
 .save-location-add .btn-secondary { padding: 6px 12px; font-size: 12px; }
+
+/* ─── Account Avatars ─── */
+.account-avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+.account-avatar-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+}
+.active-badge {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 10px; background: var(--accent); color: #fff;
+}
+.detail-account-playtime {
+  display: flex; flex-direction: column; gap: 6px; margin-top: 4px;
+}
+.account-playtime-row {
+  display: flex; align-items: center; gap: 10px; padding: 6px 10px;
+  background: var(--bg-elevated); border-radius: var(--radius-sm);
+}
+.account-playtime-name { font-size: 13px; font-weight: 500; flex: 1; }
+.account-playtime-time { font-size: 13px; font-weight: 600; color: var(--text); }
+.account-playtime-sessions { font-size: 11px; color: var(--text-muted); }
 
 /* ─── Settings Page ─── */
 .settings-page { flex: 1; overflow-y: auto; padding: 24px 32px; max-width: 680px; }
