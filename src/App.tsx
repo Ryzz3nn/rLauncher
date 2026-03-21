@@ -313,6 +313,69 @@ export default function App() {
     saveStore({ ...storeData, customGames: customOnly });
   }
 
+  const ACCT_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#7c3aed', '#ec4899'];
+
+  async function handleImportSteamAccounts() {
+    addToast({ message: 'Detecting Steam accounts...', type: 'info' });
+    const localAccounts = await window.api.getSteamAccounts();
+    if (localAccounts.length === 0) {
+      addToast({ message: 'No Steam accounts found on this machine.', type: 'error' });
+      return;
+    }
+
+    let profiles: { steamId: string; personaName: string; avatarUrl: string }[] = [];
+    if (storeData.settings.steamApiKey) {
+      profiles = await window.api.fetchSteamProfiles(localAccounts.map(a => a.steamId));
+    }
+
+    const profileMap = new Map(profiles.map(p => [p.steamId, p]));
+    const currentAccounts = storeData.accounts || DEFAULT_ACCOUNTS;
+    const updated = [...currentAccounts];
+    let added = 0;
+
+    for (let i = 0; i < localAccounts.length; i++) {
+      const local = localAccounts[i];
+      if (updated.some(a => a.steamId === local.steamId)) continue;
+
+      const profile = profileMap.get(local.steamId);
+      updated.push({
+        id: `steam-${local.steamId}`,
+        name: profile?.personaName || local.personaName || local.accountName,
+        avatar: profile?.avatarUrl || '',
+        color: ACCT_COLORS[i % ACCT_COLORS.length],
+        steamId: local.steamId,
+      });
+      added++;
+    }
+
+    if (added === 0) {
+      addToast({ message: 'All Steam accounts already imported.', type: 'info' });
+      return;
+    }
+
+    // Remove default account if we have real ones now
+    const finalAccounts = updated.filter(a => a.id !== 'default');
+    const accounts = finalAccounts.length > 0 ? finalAccounts : updated;
+
+    // Find the most recent Steam account
+    const mostRecent = localAccounts.find(a => a.mostRecent);
+    const newActiveId = mostRecent ? `steam-${mostRecent.steamId}` : storeData.settings.activeAccountId;
+    const newSteamId = mostRecent?.steamId || storeData.settings.steamId;
+
+    // Single atomic save with everything
+    saveStore({
+      ...storeData,
+      accounts,
+      settings: {
+        ...storeData.settings,
+        activeAccountId: accounts.some(a => a.id === newActiveId) ? newActiveId : accounts[0]?.id || 'default',
+        steamId: newSteamId || storeData.settings.steamId,
+      },
+    });
+
+    addToast({ message: `Imported ${added} Steam account(s).`, type: 'success' });
+  }
+
   function handleUninstall(game: Game) {
     if (game.source === 'custom') {
       const updated = games.filter(g => g.id !== game.id);
@@ -367,6 +430,7 @@ export default function App() {
               collections={storeData.collections}
               onSaveSettings={s => saveStore({ ...storeData, settings: s })}
               onSaveAccounts={a => saveStore({ ...storeData, accounts: a })}
+              onImportSteamAccounts={handleImportSteamAccounts}
               onSaveCollections={c => saveStore({ ...storeData, collections: c })}
               onToast={addToast}
             />
