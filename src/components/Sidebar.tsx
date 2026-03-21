@@ -53,6 +53,8 @@ function IconCollection({ color }: { color: string }) {
 
 export function Sidebar({ filter, page, onFilterChange, onPageChange, counts, collections, accounts, activeAccountId, onSwitchAccount, onAddCustomGame, onRescan }: SidebarProps) {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const activeAccount = accounts.find(a => a.id === activeAccountId) || accounts[0];
 
   const mainNav = [
     { id: 'all' as const, label: 'All Games', icon: <IconGrid />, count: counts.all },
@@ -81,30 +83,41 @@ export function Sidebar({ filter, page, onFilterChange, onPageChange, counts, co
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
+        {accounts.length > 1 && activeAccount && (
+          <div className="avatar-switcher-wrap">
+            <button className="avatar-switcher-btn" onClick={() => setShowAccountDropdown(!showAccountDropdown)}>
+              {activeAccount.avatar ? (
+                <img src={activeAccount.avatar} alt={activeAccount.name} className="avatar-switcher-img" />
+              ) : (
+                <span className="avatar-switcher-img avatar-switcher-placeholder" style={{ background: activeAccount.color }}>
+                  {activeAccount.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </button>
+            {showAccountDropdown && (
+              <div className="avatar-dropdown">
+                {accounts.map(acct => (
+                  <button key={acct.id}
+                    className={`avatar-dropdown-item ${acct.id === activeAccountId ? 'active' : ''}`}
+                    onClick={() => { onSwitchAccount(acct.id); setShowAccountDropdown(false); }}>
+                    {acct.avatar ? (
+                      <img src={acct.avatar} alt={acct.name} className="avatar-dropdown-img" />
+                    ) : (
+                      <span className="avatar-dropdown-img avatar-switcher-placeholder" style={{ background: acct.color }}>
+                        {acct.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <span>{acct.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <img src={bannerImg} alt="rLauncher" className="logo-banner" />
       </div>
 
-      {accounts.length > 1 && (
-        <div className="account-switcher">
-          {accounts.map(acct => (
-            <button
-              key={acct.id}
-              className={`account-chip ${activeAccountId === acct.id ? 'active' : ''}`}
-              onClick={() => onSwitchAccount(acct.id)}
-              title={acct.name}
-            >
-              {acct.avatar ? (
-                <img src={acct.avatar} alt={acct.name} className="account-chip-avatar" />
-              ) : (
-                <span className="account-chip-letter" style={{ background: acct.color }}>
-                  {acct.name.charAt(0).toUpperCase()}
-                </span>
-              )}
-              <span className="account-chip-name">{acct.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {/* intentionally empty — avatar is in sidebar-logo */}
 
       <nav className="sidebar-nav">
         <div className="nav-section-label">Library</div>

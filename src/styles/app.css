@@ -72,25 +72,39 @@ body {
   flex-direction: column; flex-shrink: 0;
 }
 .sidebar-logo { padding: 16px 16px 20px; display: flex; align-items: center; }
-.logo-banner { width: 100%; height: auto; object-fit: contain; }
-/* Account switcher */
-.account-switcher {
-  padding: 0 12px 12px; display: flex; gap: 4px; flex-wrap: wrap;
+.logo-banner { flex: 1; min-width: 0; height: auto; object-fit: contain; }
+/* Avatar switcher (top-left) */
+.avatar-switcher-wrap { position: relative; flex-shrink: 0; margin-right: 10px; }
+.avatar-switcher-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-light);
+  padding: 0; cursor: pointer; background: transparent; overflow: hidden;
+  transition: border-color 0.15s;
 }
-.account-chip {
-  display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px;
-  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
-  border-radius: 16px; cursor: pointer; font-family: var(--font); font-size: 12px;
-  transition: all 0.15s;
+.avatar-switcher-btn:hover { border-color: var(--accent); }
+.avatar-switcher-img {
+  width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
 }
-.account-chip:hover { background: var(--bg-elevated); color: var(--text); }
-.account-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
-.account-chip-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
-.account-chip-letter {
-  width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 10px; font-weight: 700; color: #fff;
+.avatar-switcher-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
 }
-.account-chip-name { white-space: nowrap; }
+.avatar-dropdown {
+  position: absolute; top: 38px; left: 0; z-index: 50; min-width: 160px;
+  background: var(--bg-elevated); border: 1px solid var(--border-light);
+  border-radius: var(--radius); padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  animation: contextMenuIn 0.12s ease-out;
+}
+.avatar-dropdown-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px;
+  border: none; background: transparent; color: var(--text-dim); font-family: var(--font);
+  font-size: 13px; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.1s;
+  text-align: left;
+}
+.avatar-dropdown-item:hover { background: var(--accent-soft); color: var(--text); }
+.avatar-dropdown-item.active { color: var(--accent); font-weight: 600; }
+.avatar-dropdown-img {
+  width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
 
 .sidebar-nav { flex: 1; padding: 0 12px; overflow-y: auto; }
 .sidebar-nav::-webkit-scrollbar { width: 4px; }
