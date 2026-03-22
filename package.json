@@ -1,6 +1,6 @@
 {
   "name": "rlauncher",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Unified game launcher - all your games in one place",
   "main": "dist-electron/main.js",
   "author": "Ryzz3nn",
