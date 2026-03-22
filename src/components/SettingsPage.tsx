@@ -132,6 +132,7 @@ export function SettingsPage({ settings, accounts, updateStatus, collections, on
             <option value="neutral">Neutral</option>
             <option value="midnight">Midnight</option>
             <option value="abyss">Abyss</option>
+            <option value="oled">OLED Black</option>
             <option value="charcoal">Charcoal</option>
           </select>
         </div>

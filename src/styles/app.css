@@ -53,6 +53,19 @@
   --border-light: #253350;
 }
 
+[data-theme="oled"] {
+  --bg-base:      #000000;
+  --bg-surface:   #0a0a0a;
+  --bg-elevated:  #141414;
+  --bg-card:      #181818;
+  --bg-hover:     #222222;
+  --text:         #ffffff;
+  --text-dim:     #aaaaaa;
+  --text-muted:   #666666;
+  --border:       #1a1a1a;
+  --border-light: #262626;
+}
+
 [data-theme="charcoal"] {
   --bg-base:      #121212;
   --bg-surface:   #1a1a1a;

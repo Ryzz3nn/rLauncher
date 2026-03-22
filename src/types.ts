@@ -67,7 +67,7 @@ export interface Collection {
   color: string;
 }
 
-export type ThemeId = 'neutral' | 'midnight' | 'abyss' | 'charcoal';
+export type ThemeId = 'neutral' | 'midnight' | 'abyss' | 'oled' | 'charcoal';
 
 export interface AppSettings {
   startWithWindows: boolean;
