@@ -131,12 +131,10 @@ function registerGlobalHotkey() {
     globalShortcut.unregisterAll();
     globalShortcut.register(hotkey, () => {
       if (mainWindow?.isVisible() && mainWindow.isFocused()) {
-        mainWindow.setAlwaysOnTop(false);
         mainWindow.hide();
       } else {
         mainWindow?.show();
         mainWindow?.focus();
-        mainWindow?.setAlwaysOnTop(true);
       }
     });
   } catch (err) {
