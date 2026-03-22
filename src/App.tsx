@@ -40,6 +40,7 @@ export default function App() {
   const [page, setPage] = useState<AppPage>('library');
   const [detailGame, setDetailGame] = useState<Game | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; percent?: number; message?: string }>({ status: 'idle' });
   const [runningGames, setRunningGames] = useState<Set<string>>(new Set());
 
   const favorites = useMemo(() => new Set(storeData.favorites), [storeData.favorites]);
@@ -62,6 +63,11 @@ export default function App() {
       } catch { /* first run */ }
       await scanAllLibraries();
     })();
+  }, []);
+
+  // Listen for update status globally
+  useEffect(() => {
+    return window.api.onUpdateStatus(setUpdateStatus);
   }, []);
 
   // Poll running games
@@ -413,7 +419,7 @@ export default function App() {
     <div className="app" onClick={() => setContextMenu(null)}
       style={{ '--card-min-w': cardSizeMap[storeData.settings.cardSize] } as React.CSSProperties}
     >
-      <TitleBar onGoToSettings={() => setPage('settings')} />
+      <TitleBar updateStatus={updateStatus} onGoToSettings={() => setPage('settings')} />
       <div className="app-content">
         <Sidebar
           filter={filter}
@@ -434,6 +440,7 @@ export default function App() {
               settings={storeData.settings}
               accounts={storeData.accounts || DEFAULT_ACCOUNTS}
               collections={storeData.collections}
+              updateStatus={updateStatus}
               onSaveSettings={s => saveStore({ ...storeData, settings: s })}
               onSaveAccounts={a => saveStore({ ...storeData, accounts: a })}
               onImportSteamAccounts={handleImportSteamAccounts}

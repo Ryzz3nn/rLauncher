@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 interface SettingsPageProps {
   settings: AppSettings;
   accounts: Account[];
+  updateStatus: { status: string; version?: string; percent?: number; message?: string };
   onSaveAccounts: (accounts: Account[]) => void;
   onImportSteamAccounts: () => Promise<void>;
   collections: Collection[];
@@ -25,19 +26,16 @@ const ACCENT_COLORS = [
 
 const COLLECTION_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#7c3aed', '#ec4899'];
 
-export function SettingsPage({ settings, accounts, collections, onSaveSettings, onSaveAccounts, onImportSteamAccounts, onSaveCollections, onToast }: SettingsPageProps) {
+export function SettingsPage({ settings, accounts, updateStatus, collections, onSaveSettings, onSaveAccounts, onImportSteamAccounts, onSaveCollections, onToast }: SettingsPageProps) {
   const [newColName, setNewColName] = useState('');
   const [newColColor, setNewColColor] = useState(COLLECTION_COLORS[0]);
   const [newAcctName, setNewAcctName] = useState('');
   const [newAcctAvatar, setNewAcctAvatar] = useState('');
   const [newAcctColor, setNewAcctColor] = useState(COLLECTION_COLORS[4]);
-  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; percent?: number; message?: string }>({ status: 'idle' });
   const [appVersion, setAppVersion] = useState('');
 
   useEffect(() => {
     window.api.getAppVersion().then(setAppVersion);
-    const unsub = window.api.onUpdateStatus(setUpdateStatus);
-    return unsub;
   }, []);
 
   function update(key: keyof AppSettings, value: any) {

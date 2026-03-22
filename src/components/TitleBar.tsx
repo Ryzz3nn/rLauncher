@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
 
 interface TitleBarProps {
+  updateStatus: { status: string; version?: string };
   onGoToSettings: () => void;
 }
 
-export function TitleBar({ onGoToSettings }: TitleBarProps) {
+export function TitleBar({ updateStatus, onGoToSettings }: TitleBarProps) {
   const [pinned, setPinned] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<string>('idle');
-  const [updateVersion, setUpdateVersion] = useState<string>('');
 
   useEffect(() => {
     window.api.getAlwaysOnTop().then(setPinned);
-    const unsub = window.api.onUpdateStatus((status) => {
-      setUpdateStatus(status.status);
-      if (status.version) setUpdateVersion(status.version);
-    });
-    return unsub;
   }, []);
 
   async function togglePin() {
@@ -23,7 +17,7 @@ export function TitleBar({ onGoToSettings }: TitleBarProps) {
     setPinned(result);
   }
 
-  const showBadge = updateStatus === 'available' || updateStatus === 'ready';
+  const showBadge = updateStatus.status === 'available' || updateStatus.status === 'ready';
 
   return (
     <div className="titlebar">
@@ -31,7 +25,7 @@ export function TitleBar({ onGoToSettings }: TitleBarProps) {
         <span className="titlebar-title">rLauncher</span>
         {showBadge && (
           <button className="update-badge" onClick={onGoToSettings}>
-            {updateStatus === 'ready' ? 'Restart to update' : `v${updateVersion} available`}
+            {updateStatus.status === 'ready' ? 'Restart to update' : `v${updateStatus.version} available`}
           </button>
         )}
       </div>
