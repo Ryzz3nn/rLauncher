@@ -1,11 +1,25 @@
 # rLauncher Publish Script
-# Run in Administrator PowerShell from the project root
 # Usage: .\publish.ps1 [version]
 # Example: .\publish.ps1 0.3.0
+# Auto-elevates to Administrator if needed
 
 param(
     [string]$Version
 )
+
+# ── Self-elevate to Admin if not already ──
+if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Relaunching as Administrator..." -ForegroundColor Yellow
+    $scriptPath = $MyInvocation.MyCommand.Path
+    $args = @("-NoExit", "-ExecutionPolicy", "Bypass", "-File", $scriptPath)
+    if ($Version) { $args += $Version }
+    Start-Process powershell -Verb RunAs -ArgumentList $args -WorkingDirectory (Get-Location)
+    exit
+}
+
+# Make sure we're in the project directory
+$projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $projectDir
 
 $ErrorActionPreference = "Stop"
 
@@ -16,6 +30,7 @@ if (-not $Version) {
     $Version = Read-Host "Enter new version (current: $currentVersion)"
     if (-not $Version) {
         Write-Host "No version provided, aborting." -ForegroundColor Red
+        Read-Host "Press Enter to close"
         exit 1
     }
 }
@@ -41,6 +56,7 @@ Write-Host "[3/6] Building..." -ForegroundColor Yellow
 npm run dist:win
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build failed!" -ForegroundColor Red
+    Read-Host "Press Enter to close"
     exit 1
 }
 Write-Host "  Build complete." -ForegroundColor Green
@@ -63,6 +79,7 @@ else { Write-Host "  Missing: $latest (auto-update won't work!)" -ForegroundColo
 
 if ($files.Count -lt 2) {
     Write-Host "Not enough build artifacts found, aborting." -ForegroundColor Red
+    Read-Host "Press Enter to close"
     exit 1
 }
 
@@ -84,8 +101,9 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "=== Published rLauncher v$Version ===" -ForegroundColor Green
     Write-Host "Installed copies will auto-update on next launch." -ForegroundColor Cyan
-    Write-Host ""
 } else {
     Write-Host "GitHub release creation failed." -ForegroundColor Red
-    exit 1
 }
+
+Write-Host ""
+Read-Host "Press Enter to close"
