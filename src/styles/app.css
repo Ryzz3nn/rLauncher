@@ -1,24 +1,22 @@
 /* ─── Reset & Variables ─── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
+:root, [data-theme="neutral"] {
   --bg-base:      oklch(0.13 0 259.597);
   --bg-surface:   oklch(0.18 0 259.597);
   --bg-elevated:  oklch(0.23 0 259.597);
   --bg-card:      oklch(0.25 0 259.597);
   --bg-hover:     oklch(0.30 0 259.597);
+  --text:         oklch(0.93 0 259.597);
+  --text-dim:     oklch(0.63 0 259.597);
+  --text-muted:   oklch(0.43 0 259.597);
+  --border:       oklch(0.28 0 259.597);
+  --border-light: oklch(0.33 0 259.597);
 
   --accent:       #7c3aed;
   --accent-hover: color-mix(in srgb, var(--accent) 85%, #000);
   --accent-soft:  color-mix(in srgb, var(--accent) 15%, transparent);
   --accent-glow:  color-mix(in srgb, var(--accent) 35%, transparent);
-
-  --text:         oklch(0.93 0 259.597);
-  --text-dim:     oklch(0.63 0 259.597);
-  --text-muted:   oklch(0.43 0 259.597);
-
-  --border:       oklch(0.28 0 259.597);
-  --border-light: oklch(0.33 0 259.597);
 
   --sidebar-w:    240px;
   --titlebar-h:   38px;
@@ -27,6 +25,45 @@
   --card-min-w:   165px;
 
   --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+[data-theme="midnight"] {
+  --bg-base:      #0a0a16;
+  --bg-surface:   #111125;
+  --bg-elevated:  #181835;
+  --bg-card:      #1c1c3a;
+  --bg-hover:     #24244a;
+  --text:         #e4e4ef;
+  --text-dim:     #8888a8;
+  --text-muted:   #555575;
+  --border:       #222245;
+  --border-light: #2e2e55;
+}
+
+[data-theme="abyss"] {
+  --bg-base:      #050a12;
+  --bg-surface:   #0b1220;
+  --bg-elevated:  #111a2e;
+  --bg-card:      #152035;
+  --bg-hover:     #1c2940;
+  --text:         #d8e0ef;
+  --text-dim:     #6880a8;
+  --text-muted:   #3d5070;
+  --border:       #1a2540;
+  --border-light: #253350;
+}
+
+[data-theme="charcoal"] {
+  --bg-base:      #121212;
+  --bg-surface:   #1a1a1a;
+  --bg-elevated:  #242424;
+  --bg-card:      #2a2a2a;
+  --bg-hover:     #333333;
+  --text:         #e8e8e8;
+  --text-dim:     #999999;
+  --text-muted:   #666666;
+  --border:       #2e2e2e;
+  --border-light: #3a3a3a;
 }
 
 body {

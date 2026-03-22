@@ -125,6 +125,19 @@ export function SettingsPage({ settings, accounts, updateStatus, collections, on
 
         <div className="setting-row">
           <div className="setting-info">
+            <span className="setting-name">Theme</span>
+          </div>
+          <select className="setting-select" value={settings.theme || 'neutral'}
+            onChange={e => update('theme', e.target.value)}>
+            <option value="neutral">Neutral</option>
+            <option value="midnight">Midnight</option>
+            <option value="abyss">Abyss</option>
+            <option value="charcoal">Charcoal</option>
+          </select>
+        </div>
+
+        <div className="setting-row">
+          <div className="setting-info">
             <span className="setting-name">Accent Color</span>
           </div>
           <div className="color-picker">

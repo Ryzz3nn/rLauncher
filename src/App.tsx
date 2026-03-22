@@ -18,7 +18,7 @@ const DEFAULT_GAME_DATA: GameData = {
 
 const DEFAULT_SETTINGS: AppSettings = {
   startWithWindows: false, minimizeToTray: false, closeToTray: false,
-  globalHotkey: 'CommandOrControl+Shift+G', accentColor: '#7c3aed', cardSize: 'medium',
+  globalHotkey: 'CommandOrControl+Shift+G', theme: 'neutral', accentColor: '#7c3aed', cardSize: 'medium',
   steamApiKey: '', steamId: '', activeAccountId: 'default',
 };
 
@@ -156,10 +156,11 @@ export default function App() {
     return () => window.removeEventListener('steam-playtime', handleSteamPlaytime);
   }, []);
 
-  // Apply accent color as CSS variable
+  // Apply theme and accent color
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', storeData.settings.theme || 'neutral');
     document.documentElement.style.setProperty('--accent', storeData.settings.accentColor);
-  }, [storeData.settings.accentColor]);
+  }, [storeData.settings.accentColor, storeData.settings.theme]);
 
   async function scanAllLibraries() {
     setLoading(true);

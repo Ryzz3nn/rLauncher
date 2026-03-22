@@ -67,11 +67,14 @@ export interface Collection {
   color: string;
 }
 
+export type ThemeId = 'neutral' | 'midnight' | 'abyss' | 'charcoal';
+
 export interface AppSettings {
   startWithWindows: boolean;
   minimizeToTray: boolean;
   closeToTray: boolean;
   globalHotkey: string;
+  theme: ThemeId;
   accentColor: string;
   cardSize: 'small' | 'medium' | 'large';
   steamApiKey: string;
