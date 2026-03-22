@@ -9,9 +9,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dist": "npm run build && npx electron-builder",
-    "dist:win": "npm run build && npx electron-builder --win",
-    "dist:portable": "npm run build && npx electron-builder --win portable"
+    "dist": "npm run build && node node_modules/electron-builder/cli.js",
+    "dist:win": "npm run build && node node_modules/electron-builder/cli.js --win",
+    "dist:portable": "npm run build && node node_modules/electron-builder/cli.js --win portable"
   },
   "build": {
     "appId": "com.ryzz3nn.rlauncher",
