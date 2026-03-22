@@ -148,6 +148,8 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
 
+  let updateChecked = false;
+
   autoUpdater.on('checking-for-update', () => {
     log('[UPDATE] Checking for updates...');
     mainWindow?.webContents.send('update-status', { status: 'checking' });
@@ -155,6 +157,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-available', (info) => {
     log(`[UPDATE] Update available: v${info.version}`);
+    updateChecked = true;
     mainWindow?.webContents.send('update-status', {
       status: 'available',
       version: info.version,
@@ -164,6 +167,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-not-available', () => {
     log('[UPDATE] No updates available');
+    updateChecked = true;
     mainWindow?.webContents.send('update-status', { status: 'up-to-date' });
   });
 
@@ -190,6 +194,15 @@ function setupAutoUpdater() {
       log(`[UPDATE] Check failed: ${err.message}`);
     });
   }, 5000);
+
+  // Expose whether we should skip further checks
+  ipcMain.handle('check-for-updates', () => {
+    if (updateChecked) {
+      log('[UPDATE] Already checked this session, skipping');
+      return;
+    }
+    autoUpdater.checkForUpdates().catch(err => log(`[UPDATE] Check failed: ${err.message}`));
+  });
 }
 
 app.whenReady().then(() => {
@@ -521,10 +534,6 @@ app.whenReady().then(() => {
   });
 
   // ── Auto Update ──
-
-  ipcMain.handle('check-for-updates', () => {
-    autoUpdater.checkForUpdates().catch(err => log(`[UPDATE] Check failed: ${err.message}`));
-  });
 
   ipcMain.handle('download-update', () => {
     autoUpdater.downloadUpdate().catch(err => log(`[UPDATE] Download failed: ${err.message}`));

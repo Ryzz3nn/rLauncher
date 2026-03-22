@@ -413,7 +413,7 @@ export default function App() {
     <div className="app" onClick={() => setContextMenu(null)}
       style={{ '--card-min-w': cardSizeMap[storeData.settings.cardSize] } as React.CSSProperties}
     >
-      <TitleBar />
+      <TitleBar onGoToSettings={() => setPage('settings')} />
       <div className="app-content">
         <Sidebar
           filter={filter}

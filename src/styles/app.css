@@ -58,6 +58,16 @@ body {
 }
 .titlebar-controls button:hover { background: var(--bg-hover); }
 .titlebar-controls button.close:hover { background: #e81123; color: #fff; }
+.update-badge {
+  -webkit-app-region: no-drag;
+  margin-left: 12px; padding: 2px 10px; border-radius: 10px; border: none;
+  background: #f59e0b; color: #000; font-family: var(--font); font-size: 11px;
+  font-weight: 600; cursor: pointer; transition: background 0.15s;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+.update-badge:hover { background: #fbbf24; }
+@keyframes badgePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
 .titlebar-controls .pin-btn.pinned { color: var(--accent); }
 .titlebar-controls .pin-btn.pinned:hover { background: var(--accent-soft); }
 
