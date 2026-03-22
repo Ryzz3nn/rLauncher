@@ -4,3 +4,5 @@ dist-electron/
 release/
 *.log
 *.tsbuildinfo
+publish.ps1
+UPDATE-TEST.md
