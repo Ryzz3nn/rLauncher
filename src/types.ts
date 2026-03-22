@@ -153,6 +153,13 @@ declare global {
       // Logs
       openLogsFolder: () => Promise<void>;
 
+      // Updates
+      checkForUpdates: () => Promise<void>;
+      downloadUpdate: () => Promise<void>;
+      installUpdate: () => Promise<void>;
+      getAppVersion: () => Promise<string>;
+      onUpdateStatus: (callback: (status: { status: string; version?: string; percent?: number; message?: string }) => void) => () => void;
+
       // Window
       toggleAlwaysOnTop: () => Promise<boolean>;
       getAlwaysOnTop: () => Promise<boolean>;

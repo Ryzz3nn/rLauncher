@@ -1,5 +1,5 @@
 import type { AppSettings, Collection, Toast, Account } from '../types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SettingsPageProps {
   settings: AppSettings;
@@ -31,6 +31,14 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
   const [newAcctName, setNewAcctName] = useState('');
   const [newAcctAvatar, setNewAcctAvatar] = useState('');
   const [newAcctColor, setNewAcctColor] = useState(COLLECTION_COLORS[4]);
+  const [updateStatus, setUpdateStatus] = useState<{ status: string; version?: string; percent?: number; message?: string }>({ status: 'idle' });
+  const [appVersion, setAppVersion] = useState('');
+
+  useEffect(() => {
+    window.api.getAppVersion().then(setAppVersion);
+    const unsub = window.api.onUpdateStatus(setUpdateStatus);
+    return unsub;
+  }, []);
 
   function update(key: keyof AppSettings, value: any) {
     const updated = { ...settings, [key]: value };
@@ -77,6 +85,41 @@ export function SettingsPage({ settings, accounts, collections, onSaveSettings, 
   return (
     <div className="settings-page">
       <h2 className="settings-title">Settings</h2>
+
+      {/* Updates */}
+      <div className="settings-group">
+        <h3 className="settings-group-title">Updates</h3>
+        <div className="setting-row">
+          <div className="setting-info">
+            <span className="setting-name">rLauncher v{appVersion || '...'}</span>
+            <span className="setting-desc">
+              {updateStatus.status === 'checking' && 'Checking for updates...'}
+              {updateStatus.status === 'up-to-date' && 'You are up to date.'}
+              {updateStatus.status === 'available' && `Update v${updateStatus.version} available.`}
+              {updateStatus.status === 'downloading' && `Downloading... ${updateStatus.percent || 0}%`}
+              {updateStatus.status === 'ready' && 'Update downloaded. Restart to apply.'}
+              {updateStatus.status === 'error' && `Update error: ${updateStatus.message}`}
+              {updateStatus.status === 'idle' && 'Check for new versions.'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(updateStatus.status === 'idle' || updateStatus.status === 'up-to-date' || updateStatus.status === 'error') && (
+              <button className="btn-secondary" onClick={() => window.api.checkForUpdates()}>Check</button>
+            )}
+            {updateStatus.status === 'available' && (
+              <button className="btn-primary" onClick={() => window.api.downloadUpdate()}>Download</button>
+            )}
+            {updateStatus.status === 'downloading' && (
+              <div className="update-progress">
+                <div className="update-progress-bar" style={{ width: `${updateStatus.percent || 0}%` }} />
+              </div>
+            )}
+            {updateStatus.status === 'ready' && (
+              <button className="btn-primary" onClick={() => window.api.installUpdate()}>Restart & Update</button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Appearance */}
       <div className="settings-group">

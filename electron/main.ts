@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, globalShortcut, dialog, safeStorage } from 'electron';
 import { exec, execFile } from 'child_process';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 
@@ -143,10 +144,59 @@ function registerGlobalHotkey() {
   }
 }
 
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    log('[UPDATE] Checking for updates...');
+    mainWindow?.webContents.send('update-status', { status: 'checking' });
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    log(`[UPDATE] Update available: v${info.version}`);
+    mainWindow?.webContents.send('update-status', {
+      status: 'available',
+      version: info.version,
+      releaseNotes: info.releaseNotes,
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    log('[UPDATE] No updates available');
+    mainWindow?.webContents.send('update-status', { status: 'up-to-date' });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow?.webContents.send('update-status', {
+      status: 'downloading',
+      percent: Math.round(progress.percent),
+    });
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    log('[UPDATE] Update downloaded, ready to install');
+    mainWindow?.webContents.send('update-status', { status: 'ready' });
+  });
+
+  autoUpdater.on('error', (err) => {
+    log(`[UPDATE] Error: ${err.message}`);
+    mainWindow?.webContents.send('update-status', { status: 'error', message: err.message });
+  });
+
+  // Check on launch (after a short delay so the window is ready)
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(err => {
+      log(`[UPDATE] Check failed: ${err.message}`);
+    });
+  }, 5000);
+}
+
 app.whenReady().then(() => {
   createWindow();
   createTray();
   registerGlobalHotkey();
+  setupAutoUpdater();
 
   if (store.settings.startWithWindows) {
     app.setLoginItemSettings({ openAtLogin: true });
@@ -468,6 +518,24 @@ app.whenReady().then(() => {
 
   ipcMain.handle('open-logs-folder', () => {
     shell.showItemInFolder(getLogPath());
+  });
+
+  // ── Auto Update ──
+
+  ipcMain.handle('check-for-updates', () => {
+    autoUpdater.checkForUpdates().catch(err => log(`[UPDATE] Check failed: ${err.message}`));
+  });
+
+  ipcMain.handle('download-update', () => {
+    autoUpdater.downloadUpdate().catch(err => log(`[UPDATE] Download failed: ${err.message}`));
+  });
+
+  ipcMain.handle('install-update', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
   });
 
   // ── Window Controls ──

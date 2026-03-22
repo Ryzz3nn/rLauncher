@@ -36,6 +36,17 @@ contextBridge.exposeInMainWorld('api', {
   // Logs
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
 
+  // Updates
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  onUpdateStatus: (callback: (status: any) => void) => {
+    const handler = (_event: any, status: any) => callback(status);
+    ipcRenderer.on('update-status', handler);
+    return () => ipcRenderer.removeListener('update-status', handler);
+  },
+
   // Window
   toggleAlwaysOnTop: () => ipcRenderer.invoke('toggle-always-on-top'),
   getAlwaysOnTop: () => ipcRenderer.invoke('get-always-on-top'),
